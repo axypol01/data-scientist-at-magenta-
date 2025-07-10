@@ -1,7 +1,0 @@
-[32m2025-07-10 01:27:09 +0000[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 6c67a3b0-1f99-4bf0-a02a-e9b28478f565 - 39844 - LOGS_CAPTURED - Started capturing logs in process (pid: 39844).
-[32m2025-07-10 01:27:09 +0000[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 6c67a3b0-1f99-4bf0-a02a-e9b28478f565 - 39844 - model_object - STEP_START - Started execution of step "model_object".
-[32m2025-07-10 01:27:09 +0000[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 6c67a3b0-1f99-4bf0-a02a-e9b28478f565 - 39844 - model_object - STEP_OUTPUT - Yielded output "result" of type "Any". (Type check passed).
-[32m2025-07-10 01:27:09 +0000[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 6c67a3b0-1f99-4bf0-a02a-e9b28478f565 - model_object - Writing file at: /workspaces/data-scientist-at-magenta-/.tmp_dagster_home_w002luh9/storage/model_object using PickledObjectFilesystemIOManager...
-[32m2025-07-10 01:27:09 +0000[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 6c67a3b0-1f99-4bf0-a02a-e9b28478f565 - 39844 - model_object - ASSET_MATERIALIZATION - Materialized value model_object.
-[32m2025-07-10 01:27:09 +0000[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 6c67a3b0-1f99-4bf0-a02a-e9b28478f565 - 39844 - model_object - HANDLED_OUTPUT - Handled output "result" using IO manager "io_manager"
-[32m2025-07-10 01:27:09 +0000[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 6c67a3b0-1f99-4bf0-a02a-e9b28478f565 - 39844 - model_object - STEP_SUCCESS - Finished execution of step "model_object" in 412ms.
