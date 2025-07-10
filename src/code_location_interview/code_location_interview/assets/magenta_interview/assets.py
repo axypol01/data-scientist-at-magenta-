@@ -40,7 +40,6 @@ def prod_data_preprocessed(prod_data_raw: pd.DataFrame, model_object) -> pd.Data
     """
     df = prod_data_raw.copy()
 
-    # Optional: convert these to categorical (if used in model)
     categorical_cols = [
         'has_special_offer',
         'is_magenta1_customer',
@@ -52,7 +51,7 @@ def prod_data_preprocessed(prod_data_raw: pd.DataFrame, model_object) -> pd.Data
         if col in df.columns:
             df[col] = df[col].astype("category")
 
-    # Ensure column selection matches model training
+
     features_used = model_object.feature_name()
     df = df[[col for col in features_used if col in df.columns]]
 
@@ -70,7 +69,7 @@ def prod_predictions_and_ab_test_split(
     Generates probability and binary predictions using the loaded model.
     Attaches customer_id from the raw data for traceability.
     """
-    # Get predicted probabilities (LightGBM Booster)
+
     probs = model_object.predict(prod_data_preprocessed)
     preds = (probs >= 0.43).astype(int)
 
@@ -103,12 +102,10 @@ def prod_auc(prod_data_raw: pd.DataFrame, prod_predictions: pd.DataFrame) -> Out
 
     auc_score = roc_auc_score(actuals, probs)
 
-    # Save to local file
     os.makedirs("outputs", exist_ok=True)
     with open("outputs/prod_auc.txt", "w") as f:
         f.write(f"AUC Score: {auc_score:.4f}\n")
 
-    # Cast to plain float for Dagster compatibility
     return Output(
         value=float(auc_score),
         metadata={"AUC Score": MetadataValue.float(float(auc_score))}
@@ -127,7 +124,7 @@ def precision_recall_analysis(
     y_true = prod_data_raw["has_done_upselling"].reset_index(drop=True)
     y_scores = prod_predictions_and_ab_test_split["predicted_proba"].reset_index(drop=True)
 
-    # 10% step analysis
+
     display_thresholds = np.round(np.linspace(0.0, 1.0, 11), 2)
     display_scores = []
 
@@ -140,7 +137,6 @@ def precision_recall_analysis(
 
     score_df_display = pd.DataFrame(display_scores, columns=['threshold', 'f1', 'precision', 'recall'])
 
-    # Fine-grained F1 optimization
     fine_thresholds = np.round(np.linspace(0.01, 1.00, 100), 2)
     fine_scores = []
 
@@ -152,12 +148,12 @@ def precision_recall_analysis(
     fine_score_df = pd.DataFrame(fine_scores, columns=['threshold', 'f1'])
     best_row = fine_score_df.loc[fine_score_df['f1'].idxmax()]
 
-    # Logging results (for Dagster UI)
+
     print("Precision, Recall, F1 at thresholds (10% steps):")
     print(score_df_display.sort_values(by='threshold', ascending=False).to_string(index=False))
     print(f"\nMax F1 score: {best_row.f1:.3f} at threshold = {best_row.threshold:.2f}")
 
-    # Save both for record
+
     os.makedirs("outputs", exist_ok=True)
     score_df_display.to_csv("outputs/precision_recall_display.csv", index=False)
     fine_score_df.to_csv("outputs/precision_recall_fine.csv", index=False)
@@ -186,7 +182,6 @@ def shap_top_predictions(
     explainer = shap.TreeExplainer(model_object)
     shap_values = explainer.shap_values(prod_data_preprocessed)[1]  # Class 1 SHAP values
 
-    # Prepare export table
     rows = []
     for i, idx in enumerate(top_indices):
         customer_id = prod_data_raw.iloc[idx].get("customer_id", f"row_{idx}")
@@ -195,7 +190,8 @@ def shap_top_predictions(
             "customer_id": customer_id,
             "predicted_proba": probs[idx]
         }
-        # Add feature values and SHAP values correctly
+
+
         for j, feat in enumerate(prod_data_preprocessed.columns):
             row_data[f"value__{feat}"] = prod_data_preprocessed.iloc[idx][feat]
             row_data[f"shap__{feat}"] = shap_values[idx, j] 
