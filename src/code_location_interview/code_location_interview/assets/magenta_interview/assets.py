@@ -61,7 +61,7 @@ def prod_data_preprocessed(prod_data_raw: pd.DataFrame, model_object) -> pd.Data
 
 
 @asset
-def prod_predictions(
+def prod_predictions_and_ab_test_split(
     model_object, 
     prod_data_preprocessed: pd.DataFrame, 
     prod_data_raw: pd.DataFrame
@@ -74,7 +74,7 @@ def prod_predictions(
     probs = model_object.predict(prod_data_preprocessed)
     preds = (probs >= 0.43).astype(int)
 
-    # Include customer_id if available
+    
     if "customer_id" in prod_data_raw.columns:
         customer_ids = prod_data_raw["customer_id"].reset_index(drop=True)
     else:
@@ -85,6 +85,9 @@ def prod_predictions(
         "predicted_proba": probs,
         "predicted_label": preds
     })
+
+    np.random.seed(42)  
+    result["is_control"] = np.random.rand(len(result)) < 0.5
 
     os.makedirs("outputs", exist_ok=True)
     result.to_csv("outputs/prod_predictions.csv", index=False)
@@ -113,13 +116,16 @@ def prod_auc(prod_data_raw: pd.DataFrame, prod_predictions: pd.DataFrame) -> Out
 
 
 @asset
-def precision_recall_analysis(prod_predictions: pd.DataFrame, prod_data_raw: pd.DataFrame) -> pd.DataFrame:
+def precision_recall_analysis(
+    prod_predictions_and_ab_test_split: pd.DataFrame,
+    prod_data_raw: pd.DataFrame
+) -> pd.DataFrame:
     """
     Evaluates precision, recall, and F1 score across thresholds using OOS predictions.
     Saves thresholded scores and best threshold by F1.
     """
     y_true = prod_data_raw["has_done_upselling"].reset_index(drop=True)
-    y_scores = prod_predictions["predicted_proba"].reset_index(drop=True)
+    y_scores = prod_predictions_and_ab_test_split["predicted_proba"].reset_index(drop=True)
 
     # 10% step analysis
     display_thresholds = np.round(np.linspace(0.0, 1.0, 11), 2)
